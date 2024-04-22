@@ -67,3 +67,6 @@ TAGS
 # build and install folder
 build/*
 local/*
+
+# VSCode files
+src/.vscode/*
