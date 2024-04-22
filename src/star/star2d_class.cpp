@@ -127,7 +127,7 @@ void star2d::copy(const star2d &A) {
     Tc=A.Tc;pc=A.pc;rhoc=A.rhoc;
     X0=A.X0;Y0=A.Y0;Z0=A.Z0;
     surff=A.surff;
-    conv=A.conv;
+    last_cc_domain=A.last_cc_domain;
     Xc=A.Xc;
 
     map=A.map;
@@ -142,8 +142,8 @@ void star2d::copy(const star2d &A) {
     Omega=A.Omega;Omega_bk=A.Omega_bk;
     Ekman=A.Ekman;
 
-    core_convec=A.core_convec;
-    env_convec=A.env_convec;
+    enable_core_convection=A.enable_core_convection;
+    enable_envelope_convection=A.enable_envelope_convection;
     min_core_size=A.min_core_size;
 
     domain_type=A.domain_type;
@@ -190,10 +190,10 @@ void star2d::hdf5_write(const char *filename) const {
     write_attr(star, "npts",        integer,    map.gl.npts, map.ndomains);
     write_attr(star, "nth",         integer,    &map.leg.npts);
     write_attr(star, "nex",         integer,    &map.ex.gl.npts[0]);
-    write_attr(star, "conv",        integer,    &conv);
+    write_attr(star, "last_cc_domain", integer,  &last_cc_domain);
     write_attr(star, "domain_type", integer,    domain_type.data(), map.ndomains);
-    write_attr(star, "core_convec", integer,    &core_convec);
-    write_attr(star, "env_convec",  integer,    &env_convec);
+    write_attr(star, "enable_core_convection", integer,    &enable_core_convection);
+    write_attr(star, "enable_envelope_convection",  integer,    &enable_envelope_convection);
     write_attr(star, "stratified_comp", integer, &stratified_comp);
     write_attr(star, "xif",         real,       map.gl.xif, map.ndomains+1);
     write_attr(star, "M",           real,       &M);
@@ -354,7 +354,7 @@ int star2d::hdf5_read(const char *input_file, int dim) {
     if (read_attr(star, "Xc", &Xc)) {
         ester_warn("Could not read 'Xc' from file `%s'", input_file);
     }
-    if (read_attr(star, "conv", &conv)) {
+    if (read_attr(star, "last_cc_domain", &last_cc_domain)) {
         ester_err("Could not read 'conv' from file `%s'", input_file);
         exit(EXIT_FAILURE);
     }
@@ -362,7 +362,7 @@ int star2d::hdf5_read(const char *input_file, int dim) {
     domain_type.resize(ndomains);
     if (read_attr(star, "domain_type", &domain_type[0])) {
         for (int n=0; n<ndomains; n++) {
-            if (n < conv) domain_type[n] = CORE;
+            if (n < last_cc_domain) domain_type[n] = CORE;
             else domain_type[n] = RADIATIVE;
         }
     }
@@ -420,13 +420,13 @@ int star2d::hdf5_read(const char *input_file, int dim) {
         ester_warn("Could not read 'Ekman' from file `%s'", input_file);
         Ekman = .0;
     }
-    if (read_attr(star, "core_convec", &core_convec)) {
-        ester_warn("Could not read 'core_convec' from file `%s'", input_file);
-        core_convec = 1;
+    if (read_attr(star, "enable_core_convection", &enable_core_convection)) {
+        ester_warn("Could not read 'enable_core_convection' from file `%s'", input_file);
+        enable_core_convection = 1;
     }
-    if (read_attr(star, "env_convec", &env_convec)) {
-        ester_warn("Could not read 'env_convec' from file `%s'", input_file);
-        env_convec = 0;
+    if (read_attr(star, "enable_envelope_convection", &enable_envelope_convection)) {
+        ester_warn("Could not read 'enable_envelope_convection' from file `%s'", input_file);
+        enable_envelope_convection = 0;
     }
     if (read_attr(star, "min_core_size", &min_core_size)) {
         ester_warn("Could not read 'min_core_size' from file `%s'", input_file);
@@ -721,7 +721,7 @@ int star2d::check_arg(char *arg,char *val,int *change_grid) {
         Xc=atof(val);
     }
     else if(!strcmp(arg,"conv")) {
-        ester_err("Param. conv is no longer modifiable. Disable core convection with core_convec 0.\n");
+        ester_err("Param. conv is no longer modifiable. Disable core convection with enable_core_convection 0.\n");
         return 1;
     }
     else if(!strcmp(arg,"surff")) {
@@ -760,13 +760,13 @@ int star2d::check_arg(char *arg,char *val,int *change_grid) {
         if(val==NULL) return 2;
         Ekman=atof(val);
     }
-    else if(!strcmp(arg,"core_convec")) {
+    else if(!strcmp(arg,"enable_core_convection")) {
         if(val==NULL) return 2;
-        core_convec=atoi(val);
+        enable_core_convection=atoi(val);
     }
-    else if(!strcmp(arg,"env_convec")) {
+    else if(!strcmp(arg,"enable_envelope_convection")) {
         if(val==NULL) return 2;
-        env_convec=atoi(val);
+        enable_envelope_convection=atoi(val);
     }
     else if(!strcmp(arg,"min_core_size")) {
         if(val==NULL) return 2;
@@ -838,7 +838,7 @@ void star2d::dump_info() {
     printf("\tKelvin-Helmholtz Time = %e yrs\n",virial_3P()/luminosity()/2/365.25/86400.);
     printf("\n");
 
-    if(conv==0) printf("No convective core\n\n");
+    if(last_cc_domain==0) printf("No convective core\n\n");
     else {
         printf("Convective core:\n\n");
         double mcc=Mcore();
@@ -859,7 +859,7 @@ void star2d::dump_info() {
 
     printf("Grid parameters:\n\n");
     printf("\t # of domains = %d\n",ndomains);
-    printf("\t # of domains in convective core = %d\n",conv);
+    printf("\t # of domains in convective core = %d\n",last_cc_domain);
     printf("\t nr = %d    (",nr);
     for(int n=0;n<ndomains;n++) {
         printf("%d",map.gl.npts[n]);
@@ -876,9 +876,9 @@ void star2d::dump_info() {
     printf("\tNuclear reactions = %s\n",nuc.name);
     printf("\tAtmosphere = %s\n",atm.name);
     printf("\tsurff = %e\n",surff);
-    printf("\tcore_convec = %d\n",core_convec);
+    printf("\tcore_convec = %d\n",enable_core_convection);
     printf("\tmin_core_size = %e\n",min_core_size);
-    printf("\tenv_convec = %d\n",env_convec);
+    printf("\tenv_convec = %d\n",enable_envelope_convection);
     printf("\n");
 
     printf("Tests:\n\n");

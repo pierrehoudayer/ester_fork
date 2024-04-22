@@ -85,9 +85,9 @@ double star2d::J2MR2() const {
 
 double star2d::Mcore() const {
 
-	if(!conv) return 0;
+	if(!last_cc_domain) return 0;
 	int jcc=0;
-	for(int n=0;n<conv;n++) jcc+=map.gl.npts[n];
+	for(int n=0;n<last_cc_domain;n++) jcc+=map.gl.npts[n];
 	jcc--;
 	return 2*PI*(map.gl.I.block(0,0,0,jcc),
 		(rho*r*r*map.rz).block(0,jcc,0,-1),map.leg.I_00)(0)*units.rho*units.r*units.r*units.r;
@@ -96,9 +96,9 @@ double star2d::Mcore() const {
 
 double star2d::Lzcore() const {
 
-	if(!conv) return 0;
+	if(!last_cc_domain) return 0;
 	int jcc=0;
-	for(int n=0;n<conv;n++) jcc+=map.gl.npts[n];
+	for(int n=0;n<last_cc_domain;n++) jcc+=map.gl.npts[n];
 	jcc--;
 	return 2*PI*(map.gl.I.block(0,0,0,jcc),
 		(rho*w*r*r*sin(th)*sin(th)*r*r*map.rz).block(0,jcc,0,-1),map.leg.I_00)(0)*units.rho*units.Omega*
@@ -107,9 +107,9 @@ double star2d::Lzcore() const {
 
 matrix star2d::Rcore() const {
 	
-	if(!conv) return zeros(1,nth);
+	if(!last_cc_domain) return zeros(1,nth);
 	int jcc=0;
-	for(int n=0;n<conv;n++) jcc+=map.gl.npts[n];
+	for(int n=0;n<last_cc_domain;n++) jcc+=map.gl.npts[n];
 	jcc--;
 	return r.row(jcc)*units.r;
 }

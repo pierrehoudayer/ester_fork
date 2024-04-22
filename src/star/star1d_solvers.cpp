@@ -417,7 +417,7 @@ void star1d::solve_temp(solver *op) {
     j0=0;
     for(n=0;n<ndomains;n++) {
         j1=j0+map.gl.npts[n]-1;
-        if(n<conv) qcore.setblock(j0,j1,0,0,ones(map.gl.npts[n],1));
+        if(n<last_cc_domain) qcore.setblock(j0,j1,0,0,ones(map.gl.npts[n],1));
         else qenv.setblock(j0,j1,0,0,ones(map.gl.npts[n],1));
         j0+=map.gl.npts[n];
     }
@@ -455,7 +455,7 @@ void star1d::solve_temp(solver *op) {
 
     //Convection
 
-    /*if(env_convec) {
+    /*if(enable_envelope_convection) {
         sym kc_,rho_,s_;
         sym div_Fconv;
 
@@ -499,7 +499,7 @@ void star1d::solve_temp(solver *op) {
             op->bc_bot1_add_d(n,eqn,"T",-ones(1,1));
             rhs_T(j0)=-T(j0)+T(j0-1);
         }
-        if(n>=conv) {
+        if(n>=last_cc_domain) {
             if(n<ndomains-1) {
 /*              op->bc_top1_add_l(n,eqn,"T",ones(1,1),D.block(n).row(-1));
                 op->bc_top2_add_l(n,eqn,"T",-ones(1,1),D.block(n+1).row(0));
@@ -523,10 +523,10 @@ void star1d::solve_temp(solver *op) {
             }
         }
 
-        if(n<conv) {
+        if(n<last_cc_domain) {
             op->bc_top1_add_d(n,"Lambda","Lambda",ones(1,1));
             op->bc_top2_add_d(n,"Lambda","Lambda",-ones(1,1));
-        } else if(n==conv) {
+        } else if(n==last_cc_domain) {
             if(!n) {
                 op->bc_bot2_add_l(n,"Lambda","T",ones(1,1),D.block(0).row(0));
                 rhs_Lambda(0)=-(D,T)(0);
@@ -639,9 +639,9 @@ void star1d::solve_map(solver *op) {
         j0+=map.gl.npts[n];
     }
 
-    if(conv) {
-        for(n=0,j0=0;n<conv;n++) j0+=map.gl.npts[n];
-        n=conv;
+    if(last_cc_domain) {
+        for(n=0,j0=0;n<last_cc_domain;n++) j0+=map.gl.npts[n];
+        n=last_cc_domain;
         op->reset(n,"Ri");
 
         symbolic S;

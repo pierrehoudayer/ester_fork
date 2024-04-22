@@ -180,9 +180,9 @@ void write(const star2d &A,char *var,char *fmt) {
 			fwrite(&A.surff,sizeof(double),1,stdout);
 		}
 	} else if(!strcmp(var,"conv")) {
-		if(fmt) fprintf(stdout,fmt,A.conv);
+		if(fmt) fprintf(stdout,fmt,A.last_cc_domain);
 		else {
-			fwrite(&A.conv,sizeof(int),1,stdout);
+			fwrite(&A.last_cc_domain,sizeof(int),1,stdout);
 		}
 	} else if(!strcmp(var,"Omega")) {
 		if(dim) d=A.Omega*A.units.Omega;
@@ -571,7 +571,7 @@ void write(const star2d &A,char *var,char *fmt) {
 		}
 	} else if(!strcmp(var,"eps_c")) {
 		d=0;
-		if(A.conv) d=1-A.map.eta(A.conv)/A.map.leg.eval_00(A.map.R.row(A.conv),PI/2)(0);
+		if(A.last_cc_domain) d=1-A.map.eta(A.last_cc_domain)/A.map.leg.eval_00(A.map.R.row(A.last_cc_domain),PI/2)(0);
 		if(fmt) fprintf(stdout,fmt,d);
 		else {
 			fwrite(&d,sizeof(double),1,stdout);

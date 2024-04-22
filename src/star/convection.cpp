@@ -93,7 +93,7 @@ matrix star2d::kconv() const {
 	
 	{
 		int j0=0;
-		for(int n=0;n<conv;n++) {
+		for(int n=0;n<last_cc_domain;n++) {
 			L2.setblock(j0,j0+map.gl.npts[n]-1,0,-1,zeros(map.gl.npts[n],nth));
 			j0+=map.gl.npts[n];
 		}
@@ -114,7 +114,7 @@ matrix star2d::kconv() const {
 	
 	{
 		int j0=0;
-		for(int n=0;n<conv;n++) {
+		for(int n=0;n<last_cc_domain;n++) {
 			Sigma.setblock(j0,j0+map.gl.npts[n]-1,0,-1,zeros(map.gl.npts[n],nth));
 			j0+=map.gl.npts[n];
 		}

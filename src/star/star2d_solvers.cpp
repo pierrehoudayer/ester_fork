@@ -41,11 +41,11 @@ void star2d::init_comp() {
 
 	comp=initial_composition(X0,Z0)*ones(nr,nth);
 
-	if(!conv) return;
+	if(!last_cc_domain) return;
 
 // Count the number of point in the core:
     int n = 0;
-    for (int i=0; i<conv; i++) {
+    for (int i=0; i<last_cc_domain; i++) {
         n += map.gl.npts[i];
     }
 // and put some fraction Xc of X_envelope in the core 
@@ -772,7 +772,7 @@ void star2d::solve_temp(solver *op) {
 // define the grid-points belonging to the core
 	for(n=0;n<ndomains;n++) {
 		j1=j0+map.gl.npts[n]-1;
-		if(n<conv) qcore.setblock(j0,j1,0,-1,ones(map.gl.npts[n],nth));
+		if(n<last_cc_domain) qcore.setblock(j0,j1,0,-1,ones(map.gl.npts[n],nth));
 		else qenv.setblock(j0,j1,0,-1,ones(map.gl.npts[n],nth));
 		j0+=map.gl.npts[n];
 	}
@@ -861,7 +861,7 @@ void star2d::solve_temp(solver *op) {
 			rhs_T.setrow(j0,-T.row(j0)+T.row(j0-1));
 		}
         // Radiative envelope: the continuity of (1/rz)(dT/dzeta) is imposed
-		if(n>=conv) {
+		if(n>=last_cc_domain) {
 			if(n<ndomains-1) {
 			 /*op->bc_top1_add_d(n,eqn,"Frad",rz.row(j1));
 			   op->bc_top2_add_d(n,eqn,"Frad",-rz.row(j1));
@@ -888,11 +888,11 @@ void star2d::solve_temp(solver *op) {
 			}
 		}
 
-		if(n<conv) {
+		if(n<last_cc_domain) {
         // Inside the convective core Lambda is continuous. Imposed on top of the domains
 			op->bc_top1_add_d(n,"Lambda","Lambda",ones(1,1));
 			op->bc_top2_add_d(n,"Lambda","Lambda",-ones(1,1));
-		} else if(n==conv) { // In the first domain above the CC
+		} else if(n==last_cc_domain) { // In the first domain above the CC
 			if(n==0) { // There is no central core
 				map.leg.eval_00(th,PI/2,q);
 				op->bc_bot2_add_lr(n,"Lambda","T",ones(1,1),D.block(0).row(0),q);
@@ -1043,7 +1043,7 @@ void star2d::solve_map(solver *op) {
 //for(n=1;n<=ndomains;n++) op->add_d(n,"Ri","Ri",ones(1,nth));op->set_rhs("Ri",rhs);return;
 	j0=map.gl.npts[0];
 	for(n=1;n<ndomains;n++) {
-		if(n==conv) {
+		if(n==last_cc_domain) {
 			symbolic S;
 			sym p_,s_,eq;
 			p_=S.regvar("p");

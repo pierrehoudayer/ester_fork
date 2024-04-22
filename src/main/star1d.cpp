@@ -71,11 +71,11 @@ int main(int argc,char *argv[]) {
     if(config.verbose>1) A.config.verbose=1;
 
     // If no input file, ignore core convection until the model starts to converge
-    int core_convec_set=A.core_convec;
-    int env_convec_set=A.env_convec;
+    int core_convec_set=A.enable_core_convection;
+    int env_convec_set=A.enable_envelope_convection;
     if(*config.input_file==0) {
-        A.core_convec=0;
-        A.env_convec=0;
+        A.enable_core_convection=0;
+        A.enable_envelope_convection=0;
     }
     err=1;
 
@@ -92,8 +92,8 @@ int main(int argc,char *argv[]) {
 
         try {
             if(err<0.1&&!*config.input_file) {
-                A.core_convec=core_convec_set;
-                A.env_convec=env_convec_set;
+                A.enable_core_convection=core_convec_set;
+                A.enable_envelope_convection=env_convec_set;
             }
             nit++;
             //A.check_jacobian(op,"log_T");exit(0);
@@ -127,7 +127,7 @@ int main(int argc,char *argv[]) {
         A.test_virial=A.virial(); A.test_energy=A.energy_test();
 	printf("Virial test: %e Energy test: %e\n",A.test_virial,A.test_energy);
 
-        if(A.conv) printf("r_cz=%3.3f Rsun\n",*(A.map.gl.xif+A.conv)*A.R/R_SUN);
+        if(A.last_cc_domain) printf("r_cz=%3.3f Rsun\n",*(A.map.gl.xif+A.last_cc_domain)*A.R/R_SUN);
     }
     delete op;
     A.write(config.output_file);

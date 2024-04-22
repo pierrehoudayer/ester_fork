@@ -149,7 +149,7 @@ int star1d::init(const char *input_file, const char *param_file, int argc, char 
         }
         G=0*T;
         w=0*T;
-        conv=0;
+        last_cc_domain=0;
         domain_type.resize(ndomains);
         for(int n=0;n<ndomains;n++) domain_type[n]=RADIATIVE;
         phiex=zeros(map.nex, map.nt);
@@ -190,7 +190,7 @@ void star1d::dump_info() {
     printf("\tX0=%.4f   Y0=%.4f   Z0=%.4f\n", X0, Y0, Z0);
     printf("\n");
 
-    if(conv==0) printf("No convective core\n\n");
+    if(last_cc_domain==0) printf("No convective core\n\n");
     else {
         printf("Convective core:\n\n");
         double mcc=Mcore();
@@ -208,7 +208,7 @@ void star1d::dump_info() {
 
     printf("Grid parameters:\n\n");
     printf("\t # of domains = %d\n", ndomains);
-    printf("\t # of domains in convective core = %d\n", conv);
+    printf("\t # of domains in convective core = %d\n", last_cc_domain);
     printf("\t nr = %d    (", nr);
     for(int n=0;n<ndomains;n++) {
         printf("%d", map.gl.npts[n]);
@@ -223,8 +223,8 @@ void star1d::dump_info() {
     printf("\tNuclear reactions = %s\n", nuc.name);
     printf("\tAtmosphere = %s\n", atm.name);
     printf("\tsurff = %e\n", surff);
-    printf("\tcore_convec = %d\n", core_convec);
-    printf("\tenv_convec = %d\n", core_convec);
+    printf("\tcore_convec = %d\n", enable_core_convection);
+    printf("\tenv_convec = %d\n", enable_core_convection);
     printf("\tmin_core_size = %e\n", min_core_size);
     printf("\n");
 

@@ -62,9 +62,9 @@ int main(int argc,char *argv[]) {
 	if(config.verbose>1) A.config.verbose=1;
 	
 	// If no input file, ignore core convection until the model starts to converge
-	int core_convec_set=A.core_convec;
+	int core_convec_set=A.enable_core_convection;
 	if(*config.input_file==0) {
-		A.core_convec=0;
+		A.enable_core_convection=0;
 	}
 	
     while(!last_it) {
@@ -81,7 +81,7 @@ int main(int argc,char *argv[]) {
         nit++;
 
 		if(err<0.1&&!*config.input_file) {
-            A.core_convec=core_convec_set;
+            A.enable_core_convection=core_convec_set;
 		}
 		
 		err=A.solve(op, error_map, nit-1);
@@ -140,7 +140,7 @@ int main(int argc,char *argv[]) {
 		printf("P_rot(c)=%.3f days\n",2*PI/(A.w(0,0)*A.units.Omega)/3600./24.);
 		printf("X=%3.4f (Xc/X=%3.4f) Z=%3.4f\n",A.X0,A.Xc,A.Z0);
 		printf("rhoc=%e Tc=%e pc=%e\n",A.rhoc,A.Tc,A.pc);
-		if(A.conv) printf("R. conv. core (p)=%3.3f Rsun\n",*(A.map.gl.xif+A.conv)*A.R/R_SUN);
+		if(A.last_cc_domain) printf("R. conv. core (p)=%3.3f Rsun\n",*(A.map.gl.xif+A.last_cc_domain)*A.R/R_SUN);
                 A.test_virial=A.virial(); A.test_energy=A.energy_test();
 		printf("Virial test: %e Energy test: %e\n",A.virial(),A.energy_test());
         printf("\n");

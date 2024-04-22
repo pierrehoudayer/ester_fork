@@ -50,10 +50,10 @@ class star2d {
         matrix ps, Ts;
         double m, pi_c, Lambda;
         double surff;
-        int conv;
+        int last_cc_domain;
         double Xc;
-        int core_convec;
-        int env_convec;
+        int enable_core_convection;
+        int enable_envelope_convection;
         int stratified_comp;
         double min_core_size;
         std::vector<int> domain_type;
